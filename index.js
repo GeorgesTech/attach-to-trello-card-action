@@ -82,16 +82,33 @@ const addPrComment = async (body) => {
 
 // to stop looking when we get to what looks like pr description, use stopOnNonLink true.  to allow interspersed lines of
 // yada yada yada b/w Trello links, use false.
-const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
-  core.debug(`prBody: ${util.inspect(prBody)}`);
+const extractTrelloCardIds = (pr, stopOnNonLink = true) => {
+  core.debug(`prBody: ${util.inspect(pr.body)}`);
   
   // browsers submit textareas with \r\n line breaks on all platforms
   const browserEol = '\r\n';
   // requires that link be alone own line, and allows leading/trailing whitespace
   const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)(\/\S*)?)?\s*$/;
+  const branchRegex = /^(fix|feat)_([^_]+)$/;
+  const branchWithSuffixRegex = /^(fix|feat)_([^_]+)_.+$/;
   
   const cardIds = [];
-  const lines = prBody.split(browserEol);
+  const lines = pr.body.split(browserEol);
+
+  // check if branch name contains cardId
+  const branch = evthookPayload.pull_request.head.ref
+
+  const branchMatches = branchRegex.exec(branch)
+  if (branchMatches && branchMatches[2]) {
+    core.debug(`found id ${branchMatches[2]}`);
+    cardIds.push(branchMatches[2]);
+  }
+  const branchWithSuffixMatches = branchWithSuffixRegex.exec(branch)
+  if (branchWithSuffixMatches && branchWithSuffixMatches[2]) {
+    core.debug(`found id ${branchWithSuffixMatches[2]}`);
+    cardIds.push(branchWithSuffixMatches[2]);
+  }
+  core.debug(util.inspect(cardIds));
 
   //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
   for(const line of lines) {
@@ -130,7 +147,7 @@ const buildTrelloLinkComment = async (cardId) => {
     }
     
     const prUrl = evthookPayload.pull_request.html_url;
-    const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
+    const cardIds = extractTrelloCardIds(evthookPayload.pull_request);
   
     if(cardIds && cardIds.length > 0) {
       for(const cardId of cardIds) {   
