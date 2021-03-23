@@ -89,8 +89,8 @@ const extractTrelloCardIds = (pr, stopOnNonLink = true) => {
   const browserEol = '\r\n';
   // requires that link be alone own line, and allows leading/trailing whitespace
   const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)(\/\S*)?)?\s*$/;
-  const branchRegex = /^(fix|feat)_([^_]+)$/;
-  const branchWithSuffixRegex = /^(fix|feat)_([^_]+)_.+$/;
+  const branchRegex = /^(fix|feat|tech)_([^_]+)$/;
+  const branchWithSuffixRegex = /^(fix|feat|tech)_([^_]+)_.+$/;
   
   const cardIds = [];
   const lines = pr.body.split(browserEol);
@@ -183,6 +183,6 @@ const buildTrelloLinkComment = async (cardId) => {
   } catch (error) {
     core.error(util.inspect(error));
     //failure will stop PR from being mergeable if that setting enabled on the repo.  there is not currently a neutral exit in actions v2.
-    core.setFailed(error.message);
+    core.warning(error.message);
   }
 })();
