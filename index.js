@@ -93,7 +93,7 @@ const extractTrelloCardIds = (pr, stopOnNonLink = true) => {
   const branchWithSuffixRegex = /^(fix|feat|tech)_([^_]+)_.+$/;
   
   const cardIds = [];
-  const lines = pr.body.split(browserEol);
+  const lines = (pr.body || '').split(browserEol);
 
   // check if branch name contains cardId
   const branch = evthookPayload.pull_request.head.ref
